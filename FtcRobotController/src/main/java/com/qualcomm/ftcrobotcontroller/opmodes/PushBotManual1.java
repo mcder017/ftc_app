@@ -124,7 +124,7 @@ public class PushBotManual1 extends PushBotTelemetry
         update_gamepad_telemetry ();
         telemetry.addData
             ( "12"
-            , "Left Arm: " + l_left_arm_power
+            , "Left Arm1: " + l_left_arm_power
             );
 
     } // loop
