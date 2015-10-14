@@ -4,6 +4,10 @@ package com.qualcomm.ftcrobotcontroller.opmodes;
 //
 // PushBotManual
 //
+
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.Range;
+
 /**
  * Provide a basic manual operational mode that uses the left and right
  * drive motors, left arm motor, servo motors and gamepad input from only one
@@ -76,13 +80,13 @@ public class PushBotManual1 extends PushBotTelemetry
         //
         float l_gp1_left_stick_y = -gamepad1.left_stick_y;
         float l_left_drive_power
-            = (float)scale_motor_power (l_gp1_left_stick_y);
+                = (float) scale_motor_power(l_gp1_left_stick_y);
 
         float l_gp1_right_stick_y = -gamepad1.right_stick_y;
         float l_right_drive_power
-            = (float)scale_motor_power (l_gp1_right_stick_y);
+                = (float) scale_motor_power(l_gp1_right_stick_y);
 
-        set_drive_power (l_left_drive_power, l_right_drive_power);
+        set_drive_power(l_left_drive_power, l_right_drive_power);
 
         //
         // Manage the arm motor.  The right trigger makes the arm move from the
@@ -90,9 +94,8 @@ public class PushBotManual1 extends PushBotTelemetry
         // arm move from the back to the front (i.e. down).
         //
         float l_left_arm_power
-            = (float)scale_motor_power (gamepad1.right_trigger)
-            - (float)scale_motor_power (gamepad1.left_trigger);
-        m_left_arm_power (l_left_arm_power);
+                = (float) scale_motor_power(gamepad2.left_stick_y);
+        m_left_arm_power(l_left_arm_power);
 
         //----------------------------------------------------------------------
         //
@@ -108,25 +111,40 @@ public class PushBotManual1 extends PushBotTelemetry
         // The setPosition methods write the motor power values to the Servo
         // class, but the positions aren't applied until this method ends.
         //
-        if (gamepad1.x)
-        {
-            m_hand_position (a_hand_position () + 0.05);
+        if (gamepad2.x) {
+            m_hand_position(a_hand_position() + 0.05);
+        } else if (gamepad2.b) {
+            m_hand_position(a_hand_position() - 0.05);
         }
-        else if (gamepad1.b)
-        {
-            m_hand_position (a_hand_position () - 0.05);
+        if (gamepad2.a) {
+            double target_position = 0.25;
+            double l_position = Range.clip
+                    (target_position
+                            , Servo.MIN_POSITION
+                            , Servo.MAX_POSITION
+                    );
+            //v_servo_left_hand.setPosition(l_position);
+
+
+        } else if (gamepad2.y) {
+            double target_position = 0.75;
+            double l_position = Range.clip
+                    (target_position
+                            , Servo.MIN_POSITION
+                            , Servo.MAX_POSITION);
+
+            //
+            // Send telemetry data to the driver station.
+            //
+            update_telemetry(); // Update common telemetry
+            update_gamepad_telemetry();
+            telemetry.addData
+                    ("12"
+                            , "Left Arm1b: " + l_left_arm_power
+                    );
+
         }
 
-        //
-        // Send telemetry data to the driver station.
-        //
-        update_telemetry (); // Update common telemetry
-        update_gamepad_telemetry ();
-        telemetry.addData
-            ( "12"
-            , "Left Arm1: " + l_left_arm_power
-            );
-
-    } // loop
+    }  //loop
 
 } // PushBotManual1
