@@ -112,24 +112,37 @@ public class PushBotManual1 extends PushBotTelemetry
         // class, but the positions aren't applied until this method ends.
         //
         if (gamepad2.x) {
-            m_hand_position(a_hand_position() + 0.05);
-        } else if (gamepad2.b) {
-            m_hand_position(a_hand_position() - 0.05);
-        }
-        if (gamepad2.a) {
             double target_position = 0.25;
             double l_position = Range.clip
                     (target_position
                             , Servo.MIN_POSITION
                             , Servo.MAX_POSITION
                     );
-            //v_servo_left_hand.setPosition(l_position);
 
 
-        } else if (gamepad2.y) {
+
+        } else if (gamepad2.b) {
             double target_position = 0.75;
             double l_position = Range.clip
                     (target_position
+                            , Servo.MIN_POSITION
+                            , Servo.MAX_POSITION);
+        }
+
+        if (gamepad2.x) {
+            double target_position1 = 0.25;
+            double l_position1 = Range.clip
+                    (target_position1
+                            , Servo.MIN_POSITION
+                            , Servo.MAX_POSITION
+                    );
+            //v_servo_left_hand.setPosition(l_position);
+
+
+        } else if (gamepad2.b) {
+            double target_position1 = 0.75;
+            double l_position1 = Range.clip
+                    (target_position1
                             , Servo.MIN_POSITION
                             , Servo.MAX_POSITION);
 
@@ -147,4 +160,4 @@ public class PushBotManual1 extends PushBotTelemetry
 
     }  //loop
 
-} // PushBotManual1
+} // PushBotManual 1
