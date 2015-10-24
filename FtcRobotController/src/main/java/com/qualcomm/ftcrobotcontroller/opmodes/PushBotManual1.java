@@ -19,6 +19,10 @@ import com.qualcomm.robotcore.util.Range;
 public class PushBotManual1 extends PushBotTelemetry
 
 {
+    final double HAND_MOVEMENT_SIZE = 0.015;
+    final double MY_MIN_HAND_POSITION = 0.23;
+    final float ARM_MOVE_SPEED = 0.175f;
+
     //--------------------------------------------------------------------------
     //
     // PushBotManual1
@@ -94,7 +98,10 @@ public class PushBotManual1 extends PushBotTelemetry
         // arm move from the back to the front (i.e. down).
         //
         float l_left_arm_power
-                = (float) scale_motor_power(gamepad2.left_stick_y);
+                = Range.clip(
+                (float) scale_motor_power(gamepad2.left_stick_y),
+                -ARM_MOVE_SPEED,
+                ARM_MOVE_SPEED);
         m_left_arm_power(l_left_arm_power);
 
         //----------------------------------------------------------------------
@@ -112,51 +119,39 @@ public class PushBotManual1 extends PushBotTelemetry
         // class, but the positions aren't applied until this method ends.
         //
         if (gamepad2.x) {
-            double target_position = 0.25;
-            double l_position = Range.clip
+
+           final double target_position = a_hand_position()-HAND_MOVEMENT_SIZE;
+           final double l_position = Range.clip
                     (target_position
-                            , Servo.MIN_POSITION
+                            , MY_MIN_HAND_POSITION
                             , Servo.MAX_POSITION
+
                     );
 
-
+             m_hand_position(l_position);
 
         } else if (gamepad2.b) {
-            double target_position = 0.75;
-            double l_position = Range.clip
+           final double target_position = a_hand_position()+HAND_MOVEMENT_SIZE;
+          final double l_position = Range.clip
                     (target_position
-                            , Servo.MIN_POSITION
+                            , MY_MIN_HAND_POSITION
                             , Servo.MAX_POSITION);
+            m_hand_position(l_position);
         }
 
-        if (gamepad2.x) {
-            double target_position1 = 0.25;
-            double l_position1 = Range.clip
-                    (target_position1
-                            , Servo.MIN_POSITION
-                            , Servo.MAX_POSITION
-                    );
-            //v_servo_left_hand.setPosition(l_position);
 
-
-        } else if (gamepad2.b) {
-            double target_position1 = 0.75;
-            double l_position1 = Range.clip
-                    (target_position1
-                            , Servo.MIN_POSITION
-                            , Servo.MAX_POSITION);
 
             //
             // Send telemetry data to the driver station.
             //
             update_telemetry(); // Update common telemetry
             update_gamepad_telemetry();
-            telemetry.addData
-                    ("12"
-                            , "Left Arm1b: " + l_left_arm_power
-                    );
+        telemetry.addData
+                ("12"
+                        , "Left Arm1b: " + l_left_arm_power
+                );
 
-        }
+
 
     }  //loop
 
