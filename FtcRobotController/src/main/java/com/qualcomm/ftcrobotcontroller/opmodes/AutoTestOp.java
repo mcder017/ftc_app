@@ -10,6 +10,7 @@ public class AutoTestOp extends PushBotTelemetry {
     private int v_state = 0;
     private Servo v_servo_left_hand;
     private Servo v_servo_right_hand;
+    final double DRIVE_DISTANCE_6_INCHES = 2880;
 
 void m_myhand_position(double lefthand, double righthand){
     if(v_servo_right_hand != null) {
@@ -24,6 +25,7 @@ void m_myhand_position(double lefthand, double righthand){
 
     public void init() {
 super.init();
+
         try
         {
             v_servo_left_hand = hardwareMap.servo.get ("left_hand");
@@ -59,7 +61,8 @@ super.init();
     @Override
     public void start() {
         super.start();
-        m_myhand_position(0.76,0.76);
+        m_myhand_position(0.76, 1.0 - 0.76);
+
     }
 
     public void loop () {
@@ -68,49 +71,47 @@ super.init();
         float   l_left_drive_power;
          float  l_right_drive_power;
         switch (v_state) {
-            case 0:
-                resetStartTime();
-                 l_left_drive_power = (0.5f);
-                 l_right_drive_power = (0.5f);
-                set_drive_power (l_left_drive_power, l_right_drive_power);
-              v_state++;
-                break;
-            case 1:
-                if (currentTime >= 3.0) {
 
-                    set_drive_power(0.0, 0.0);
-                    v_state++;
+            case 0:
+
+                if(have_drive_encoders_reset()){
+
+
+
+
+              v_state++;
                 }
                 break;
-            case 2:
-               resetStartTime();
-                 l_left_drive_power = (-0.5f);
-                 l_right_drive_power = (0.5f);
-                set_drive_power (l_left_drive_power, l_right_drive_power);
+            case 1:
+                if (drive_using_encoders(1.0, 1.0, DRIVE_DISTANCE_6_INCHES, DRIVE_DISTANCE_6_INCHES)) {
+                    v_state++;
+                }
 
+                break;
+            case 2:
+                if (have_drive_encoders_reset()) {
+                    v_state++;
+                }
 
                 v_state++;
 
                 break;
 
             case 3:
-                if (currentTime >=0.7){
-                    set_drive_power (0.0, 0.0);
+                if (drive_using_encoders(-1.0, 1.0, -DRIVE_DISTANCE_6_INCHES, DRIVE_DISTANCE_6_INCHES)) {
                     v_state++;
-                } break;
+                }
+                break;
 
             case 4:
-                resetStartTime();
-                l_left_drive_power = (0.5f);
-                l_right_drive_power = (0.5f);
-                set_drive_power (l_left_drive_power, l_right_drive_power);
-                v_state++;
+                if (have_drive_encoders_reset()) {
+                    v_state++;
+                }
                 break;
             case 5:
-                    if(currentTime >= .5)  {
-                        set_drive_power (0.0, 0.0);
-                         v_state++;
-                    }         break;
+                if (drive_using_encoders(1, 1, DRIVE_DISTANCE_6_INCHES, DRIVE_DISTANCE_6_INCHES )) {
+                    v_state++;
+                }
             case 6:
                  resetStartTime();
                 l_left_arm_power = (0.5f);
@@ -118,7 +119,7 @@ super.init();
                 v_state++;
                 break;
             case 7:
-                 if (currentTime >= .5)  {
+                 if (currentTime >= .2)  {
                      l_left_arm_power = (.0f);
                      m_left_arm_power(l_left_arm_power);
                  }    v_state++;
@@ -126,49 +127,44 @@ super.init();
 
 
             case 8:
-             resetStartTime();
-              l_left_drive_power = (0.5f);
-              l_right_drive_power = (0.5f);
-              set_drive_power (l_left_drive_power, l_right_drive_power);
-                v_state++;
+                if (drive_using_encoders(1.0, 1.0, DRIVE_DISTANCE_6_INCHES, DRIVE_DISTANCE_6_INCHES)) {
+                    v_state++;
+                }
               break;
             case 9:
-                  if(currentTime >= .1)  {
-                              set_drive_power (0.0,0.0);
-                  }          v_state++; break;
+                if (have_drive_encoders_reset()) {
+                    v_state++;
+                }
             case 10:
                  resetStartTime();
                 l_left_arm_power = (-0.1f);
                  m_left_arm_power(l_left_arm_power);
                 v_state++;
             case 11:
+                v_state++;
+                break;
             case 12:
-                resetStartTime();
-                 l_left_drive_power = (-0.5f);
-                 l_right_drive_power = (-0.5f);
-                 set_drive_power (l_left_drive_power, l_right_drive_power);
+                if (have_drive_encoders_reset()) {
+                    v_state++;
+                }
                  break;
             case 13:
-                if(currentTime >= .5)    {
-                    set_drive_power (0.0,0.0)  ;
-                }                v_state++;   break;
+                if (drive_using_encoders(1.0, 1.0, 1000, 1000)) {
+                    v_state++;
+                }break;
             case 14:
-              resetStartTime();
-               l_left_drive_power = (-0.5f);
-               l_right_drive_power = (-0.5f);
-               set_drive_power (l_left_drive_power, l_right_drive_power);
-                 v_state++;
+                if (drive_using_encoders(-1.0, -1.0, DRIVE_DISTANCE_6_INCHES, DRIVE_DISTANCE_6_INCHES)) {
+                    v_state++;
+                }
                break;
             case 15:
-             if(currentTime >= .5)    {
-                 set_drive_power (0.0,0.0)  ;
-             }                v_state++;   break;
+                if (have_drive_encoders_reset()) {
+                    v_state++;
+                }
             case 16:
-             resetStartTime();
-              l_left_drive_power = (-0.5f);
-              l_right_drive_power = (0.5f);
-              set_drive_power (l_left_drive_power, l_right_drive_power);
-                v_state++;
+                if (drive_using_encoders(-1.0, 1.0, DRIVE_DISTANCE_6_INCHES, DRIVE_DISTANCE_6_INCHES)) {
+                    v_state++;
+                }
             case 17:
 
 
@@ -177,9 +173,9 @@ super.init();
 
 
 
-            default: v_state = 0;
+            default:
                 //Do nothing
-
+               break;
         }
 
         //
@@ -187,9 +183,10 @@ super.init();
         //
         update_telemetry(); // Update common telemetry
         telemetry.addData
-                ( "14"
+                ("14"
                         , "State: " + v_state + " Time " + currentTime
                 );
+        telemetry.addData("15", "Distance L "+a_left_encoder_count()+" R "+ a_right_encoder_count() );
     }
 
 }

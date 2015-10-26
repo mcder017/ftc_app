@@ -47,7 +47,12 @@ public class PushBotManual1 extends PushBotTelemetry
 
     } // PushBotManual1
 
-    //--------------------------------------------------------------------------
+    @Override
+    public void init() {
+        super.init();
+        run_without_drive_encoders ();
+    }
+//--------------------------------------------------------------------------
     //
     // loop
     //
