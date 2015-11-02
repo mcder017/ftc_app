@@ -108,7 +108,7 @@ super.init();
                 }
                 break;
             case 1:
-                if (drive_using_encoders(1.0, 1.0, DRIVE_DISTANCE_6_INCHES, DRIVE_DISTANCE_6_INCHES)) {
+                if (drive_using_encoders(1.0, 1.0, DRIVE_DISTANCE_6_INCHES*5, DRIVE_DISTANCE_6_INCHES*5)) {
                     v_state++;
                 }
 
@@ -123,7 +123,7 @@ super.init();
                 break;
 
             case 3:
-                if (drive_using_encoders(-1.0, 1.0, DRIVE_DISTANCE_6_INCHES, DRIVE_DISTANCE_6_INCHES)) {
+                if (drive_using_encoders(-1.0, 1.0, DRIVE_DISTANCE_6_INCHES*5, DRIVE_DISTANCE_6_INCHES*5)) {
                     v_state++;
                 }
                 break;
@@ -134,7 +134,7 @@ super.init();
                 }
                 break;
             case 5:
-                if (drive_using_encoders(1, 1, DRIVE_DISTANCE_6_INCHES, DRIVE_DISTANCE_6_INCHES )) {
+                if (drive_using_encoders(1, 1, DRIVE_DISTANCE_6_INCHES*5, DRIVE_DISTANCE_6_INCHES*5 )) {
                     v_state++;
                 }
                 break;
@@ -160,7 +160,7 @@ super.init();
 
 
             case 9:
-                if (drive_using_encoders(1.0, 1.0, DRIVE_DISTANCE_6_INCHES, DRIVE_DISTANCE_6_INCHES)) {
+                if (drive_using_encoders(1.0, 1.0, DRIVE_DISTANCE_6_INCHES*5, DRIVE_DISTANCE_6_INCHES*5)) {
                     v_state++;
                 }
               break;
@@ -190,7 +190,7 @@ super.init();
                     v_state++;
                 }break;
             case 15:
-                if (drive_using_encoders(-1.0, -1.0, DRIVE_DISTANCE_6_INCHES, DRIVE_DISTANCE_6_INCHES)) {
+                if (drive_using_encoders(-1.0, -1.0, DRIVE_DISTANCE_6_INCHES*5, DRIVE_DISTANCE_6_INCHES*5)) {
                     v_state++;
                 }
                break;
@@ -200,7 +200,7 @@ super.init();
                 }
                 break;
             case 17:
-                if (drive_using_encoders(-1.0, 1.0, DRIVE_DISTANCE_6_INCHES, DRIVE_DISTANCE_6_INCHES)) {
+                if (drive_using_encoders(-1.0, 1.0, DRIVE_DISTANCE_6_INCHES*5, DRIVE_DISTANCE_6_INCHES*5)) {
                     v_state++;
                 }
                 break;

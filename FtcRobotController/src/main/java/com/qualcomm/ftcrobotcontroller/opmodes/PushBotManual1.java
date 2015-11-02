@@ -5,6 +5,8 @@ package com.qualcomm.ftcrobotcontroller.opmodes;
 // PushBotManual
 //
 
+import com.qualcomm.ftccommon.DbgLog;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
@@ -22,6 +24,7 @@ public class PushBotManual1 extends PushBotTelemetry
     final double HAND_MOVEMENT_SIZE = 0.015;
     final double MY_MIN_HAND_POSITION = 0.23;
     final float ARM_MOVE_SPEED = 0.175f;
+    private DcMotor v_motor_right_arm;
 
     //--------------------------------------------------------------------------
     //
@@ -46,10 +49,28 @@ public class PushBotManual1 extends PushBotTelemetry
         // All via self-construction.
 
     } // PushBotManual1
+    void m_right_arm_power (double p_level)
+    {
+        if (v_motor_right_arm != null)
+        {
+            v_motor_right_arm.setPower (p_level);
+        }
 
+    } // m_left_arm_power
     @Override
     public void init() {
         super.init();
+        try
+        {
+            v_motor_right_arm = hardwareMap.dcMotor.get ("right_arm");
+        }
+        catch (Exception p_exeception)
+        {
+            m_warning_message ("right_arm");
+            DbgLog.msg(p_exeception.getLocalizedMessage());
+
+            v_motor_right_arm = null;
+        }
         run_without_drive_encoders ();
     }
 //--------------------------------------------------------------------------
@@ -108,6 +129,15 @@ public class PushBotManual1 extends PushBotTelemetry
                 -ARM_MOVE_SPEED,
                 ARM_MOVE_SPEED);
         m_left_arm_power(l_left_arm_power);
+
+
+
+        float l_right_arm_power
+                = Range.clip(
+                (float) scale_motor_power(gamepad2.right_stick_y),
+                -ARM_MOVE_SPEED,
+                ARM_MOVE_SPEED);
+        m_right_arm_power(l_right_arm_power);
 
         //----------------------------------------------------------------------
         //
