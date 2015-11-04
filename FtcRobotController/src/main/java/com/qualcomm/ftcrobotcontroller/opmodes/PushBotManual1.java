@@ -185,6 +185,10 @@ public class PushBotManual1 extends PushBotTelemetry
                 ("12"
                         , "Left Arm1b: " + l_left_arm_power
                 );
+        telemetry.addData
+                ("13"
+                        , "Right Arm1b: " + l_right_arm_power
+                );
 
 
 
