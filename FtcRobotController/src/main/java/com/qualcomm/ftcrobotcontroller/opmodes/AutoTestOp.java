@@ -14,6 +14,7 @@ public class AutoTestOp extends PushBotTelemetry {
     private Servo v_servo_right_hand;
     double firstDistance = 4.0;
     final double DRIVE_DISTANCE_6_INCHES = 2880;
+    private DcMotor v_motor_right_arm;
     //--------------------------------------------------------------------------
     //
     // v_motor_left_arm
@@ -36,9 +37,21 @@ void m_myhand_position(double lefthand, double righthand){
 
     public void init() {
 super.init();
-        //
+        reset_drive_encoders();
+        reset_left_arm_encoder();
         // Connect the arm motor.
         //
+        try
+        {
+            v_motor_right_arm = hardwareMap.dcMotor.get ("right_arm");
+        }
+        catch (Exception p_exeception)
+        {
+            m_warning_message ("right_arm");
+            DbgLog.msg(p_exeception.getLocalizedMessage());
+
+            v_motor_right_arm = null;
+        }
         try
         {
             v_motor_left_arm = hardwareMap.dcMotor.get ("left_arm");
@@ -108,7 +121,8 @@ super.init();
                 }
                 break;
             case 1:
-                if (drive_using_encoders(1.0, 1.0, DRIVE_DISTANCE_6_INCHES*5, DRIVE_DISTANCE_6_INCHES*5)) {
+                //Drive from wall towards climber
+                if (drive_using_encoders(1.0, 1.0, DRIVE_DISTANCE_6_INCHES*9, DRIVE_DISTANCE_6_INCHES*9)) {
                     v_state++;
                 }
 
@@ -123,7 +137,8 @@ super.init();
                 break;
 
             case 3:
-                if (drive_using_encoders(-1.0, 1.0, DRIVE_DISTANCE_6_INCHES*5, DRIVE_DISTANCE_6_INCHES*5)) {
+                //Turn towards climber\\
+                if (drive_using_encoders(-1.0, 1.0,5000,5000)) {
                     v_state++;
                 }
                 break;
@@ -134,7 +149,10 @@ super.init();
                 }
                 break;
             case 5:
-                if (drive_using_encoders(1, 1, DRIVE_DISTANCE_6_INCHES*5, DRIVE_DISTANCE_6_INCHES*5 )) {
+                //lower arm
+                if (arm_using_encoders( -.25, 800 )) {
+                    run_without_left_arm_encoder();
+                    m_left_arm_power(0.1);
                     v_state++;
                 }
                 break;
@@ -146,12 +164,19 @@ super.init();
 
                 break;
             case 7:
-                if(arm_using_encoders(.5f,100)) {
+                //Driving to hit climber
+                if (drive_using_encoders(1.0, 1.0, DRIVE_DISTANCE_6_INCHES*5, DRIVE_DISTANCE_6_INCHES*5)) {
+                    v_state++;
+                }
+
+            case 8:
+                //Lift arm
+                if(arm_using_encoders(.25f,500)) {
                  v_state++;
                 }
 
                 break;
-            case 8:
+            case 9:
                 if(has_left_arm_encoder_reset()) {
                     v_state++;
                 }
@@ -159,61 +184,93 @@ super.init();
                 break;
 
 
-            case 9:
-                if (drive_using_encoders(1.0, 1.0, DRIVE_DISTANCE_6_INCHES*5, DRIVE_DISTANCE_6_INCHES*5)) {
-                    v_state++;
-                }
-              break;
             case 10:
-                if (have_drive_encoders_reset()) {
-                    v_state++;
-                }
-                break;
-            case 11:
-                if(arm_using_encoders(.5f,100)) {
-                    v_state++;
-                }
-
-                break;
-            case 12:
-               if(has_left_arm_encoder_reset()) {
-                   v_state++;
-               }
-
-                break;
-            case 13:
-                v_state++;
-
-                 break;
-            case 14:
-                if (drive_using_encoders(1.0, 1.0, 1000, 1000)) {
-                    v_state++;
-                }break;
-            case 15:
+                //Backing up from climber
                 if (drive_using_encoders(-1.0, -1.0, DRIVE_DISTANCE_6_INCHES*5, DRIVE_DISTANCE_6_INCHES*5)) {
                     v_state++;
                 }
-               break;
-            case 16:
+              break;
+            case 11:
                 if (have_drive_encoders_reset()) {
                     v_state++;
                 }
                 break;
+            case 12:
+             v_state++;
+
+                break;
+            case 13:
+              v_state++;
+
+                break;
+            case 14:
+                v_state++;
+
+                 break;
+            case 15:
+                // Reverse turn back towards mountain
+                if (drive_using_encoders(1.0, -1.0, 5000,5000)) {
+                    v_state++;
+                }break;
+            case 16:
+                //back up to be parallel with mountain
+                if (drive_using_encoders(-1.0, -1.0, DRIVE_DISTANCE_6_INCHES*3, DRIVE_DISTANCE_6_INCHES*3)) {
+                    v_state++;
+                }
+               break;
             case 17:
-                if (drive_using_encoders(-1.0, 1.0, DRIVE_DISTANCE_6_INCHES*5, DRIVE_DISTANCE_6_INCHES*5)) {
+                if (have_drive_encoders_reset()) {
                     v_state++;
                 }
                 break;
             case 18:
+                // Turn to face mountain
+                if (drive_using_encoders(-1.0, 1.0,5000,5000)) {
+                    v_state++;
+                }
+                break;
+            case 19:
                 if (have_drive_encoders_reset()) {
                     v_state++;
                     break;
                 }
-            case 19 :
-                run_without_drive_encoders();
-                set_drive_power(1.0,1.0);
+            case 20 :
+                //Drive up mountain
+                if (drive_using_encoders(1.0, 1.0,DRIVE_DISTANCE_6_INCHES*8,DRIVE_DISTANCE_6_INCHES*8)) {
+                    v_state++;
+                }
+
+
+
+                break;
+            case 21:
+                //lower arm towards bar
+                resetStartTime();
+                run_without_left_arm_encoder();
+                m_left_arm_power(-1);
+
                 v_state++;
                 break;
+            case 22:
+                //stop arm after short time and begin pulling and driving
+                if(currentTime >=.3) {
+                    m_left_arm_power(0.0);
+                    run_without_drive_encoders();
+                    m_right_arm_power(1.0);
+                    set_drive_power(1.0,1.0);
+                    resetStartTime();
+                    v_state++;
+
+                }
+                break;
+            case 23:
+                //Stop everything
+                if(currentTime >=2.0) {
+                    m_right_arm_power(0.0);
+                    set_drive_power(0.0,0.0);
+                    v_state++;
+                }
+
 
 
 
@@ -235,6 +292,7 @@ super.init();
                         , "State: " + v_state + " Time " + currentTime
                 );
         telemetry.addData("15", "Distance L "+a_left_encoder_count()+" R "+ a_right_encoder_count() );
+        telemetry.addData("16", "Right Arm Power" + a_right_arm_power() );
     }
     //--------------------------------------------------------------------------
     //
@@ -429,4 +487,24 @@ super.init();
         return l_return;
 
     } // has_left_drive_encoder_reached
+    void m_right_arm_power (double p_level)
+    {
+        if (v_motor_right_arm != null)
+        {
+            v_motor_right_arm.setPower (p_level);
+        }
+
+    } // m_left_arm_power
+    double a_right_arm_power ()
+    {
+        double l_return = 0.0;
+
+        if (v_motor_right_arm != null)
+        {
+            l_return = v_motor_right_arm.getPower ();
+        }
+
+        return l_return;
+
+    } // a_left_drive_power
 }

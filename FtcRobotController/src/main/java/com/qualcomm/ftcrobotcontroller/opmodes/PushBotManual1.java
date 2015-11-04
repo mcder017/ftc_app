@@ -7,6 +7,7 @@ package com.qualcomm.ftcrobotcontroller.opmodes;
 
 import com.qualcomm.ftccommon.DbgLog;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorController;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
@@ -25,6 +26,7 @@ public class PushBotManual1 extends PushBotTelemetry
     final double MY_MIN_HAND_POSITION = 0.23;
     final float ARM_MOVE_SPEED = 0.175f;
     private DcMotor v_motor_right_arm;
+    private DcMotor my_v_motor_left_arm;
 
     //--------------------------------------------------------------------------
     //
@@ -71,7 +73,23 @@ public class PushBotManual1 extends PushBotTelemetry
 
             v_motor_right_arm = null;
         }
+        try
+        {
+            my_v_motor_left_arm = hardwareMap.dcMotor.get ("left_arm");
+    }
+        catch (Exception p_exeception)
+        {
+            m_warning_message ("left_arm");
+            DbgLog.msg(p_exeception.getLocalizedMessage());
+
+            my_v_motor_left_arm = null;
+        }
+        my_reset_left_arm_encoder();
+         run_without_left_drive_encoder();
+
+
         run_without_drive_encoders ();
+
     }
 //--------------------------------------------------------------------------
     //
@@ -183,11 +201,73 @@ public class PushBotManual1 extends PushBotTelemetry
             update_gamepad_telemetry();
         telemetry.addData
                 ("12"
-                        , "Left Arm1b: " + l_left_arm_power
+                        , "Left Arm: " + (my_has_left_arm_encoder_reset() ? "R" : "") + a_left_encoder_count()
                 );
+        telemetry.addData("16", "Right Arm Power" + l_right_arm_power );
 
 
 
     }  //loop
+    int my_a_left_arm_encoder_count()
+    {
+        int l_return = 0;
 
+        if (my_v_motor_left_arm != null)
+        {
+            l_return = my_v_motor_left_arm.getCurrentPosition ();
+        }
+
+        return l_return;
+
+    } // a_left_encoder_count
+
+    //--------------------------------------------------------------------------
+    //
+    // has_left_drive_encoder_reset
+    //
+    /**
+     * Indicate whether the left drive encoder has been completely reset.
+     */
+    boolean my_has_left_arm_encoder_reset()
+    {
+        //
+        // Assume failure.
+        //
+        boolean l_return = false;
+
+        //
+        // Has the left encoder reached zero?
+        //
+        if (my_a_left_arm_encoder_count() == 0)
+        {
+            //
+            // Set the status to a positive indication.
+            //
+            l_return = true;
+        }
+
+        //
+        // Return the status.
+        //
+        return l_return;
+
+    } // has_left_drive_encoder_reset
+//--------------------------------------------------------------------------
+    //
+    // reset_left_drive_encoder
+    //
+    /**
+     * Reset the left drive wheel encoder.
+     */
+    public void my_reset_left_arm_encoder()
+
+    {
+        if (my_v_motor_left_arm != null)
+        {
+            my_v_motor_left_arm.setChannelMode
+                    ( DcMotorController.RunMode.RESET_ENCODERS
+                    );
+        }
+
+    } // reset_left_drive_encoder
 } // PushBotManual 1
