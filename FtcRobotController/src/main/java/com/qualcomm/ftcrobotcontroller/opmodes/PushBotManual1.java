@@ -84,12 +84,15 @@ public class PushBotManual1 extends PushBotTelemetry
 
             my_v_motor_left_arm = null;
         }
+
+
+
+
+    }
+
+    public void start() {
         my_reset_left_arm_encoder();
-         run_without_left_drive_encoder();
-
-
-        run_without_drive_encoders ();
-
+        run_without_drive_encoders();
     }
 //--------------------------------------------------------------------------
     //
@@ -141,6 +144,9 @@ public class PushBotManual1 extends PushBotTelemetry
         // front of the robot to the back (i.e. up).  The left trigger makes the
         // arm move from the back to the front (i.e. down).
         //
+        run_using_left_arm_encoder();
+        run_without_right_arm_encoder();
+
         float l_left_arm_power
                 = Range.clip(
                 (float) scale_motor_power(gamepad2.left_stick_y),
@@ -201,7 +207,7 @@ public class PushBotManual1 extends PushBotTelemetry
             update_gamepad_telemetry();
         telemetry.addData
                 ("12"
-                        , "Left Arm: " + (my_has_left_arm_encoder_reset() ? "R" : "") + a_left_encoder_count()
+                        , "Left Arm encoder: " + (my_has_left_arm_encoder_reset() ? "R" : "") + my_a_left_arm_encoder_count()
                 );
         telemetry.addData("16", "Right Arm Power" + l_right_arm_power );
 
@@ -270,4 +276,42 @@ public class PushBotManual1 extends PushBotTelemetry
         }
 
     } // reset_left_drive_encoder
+
+    public void my_run_without_left_arm_encoder() {
+        if (my_v_motor_left_arm != null)
+        {
+            if (my_v_motor_left_arm.getChannelMode () ==
+                    DcMotorController.RunMode.RESET_ENCODERS)
+            {
+                my_v_motor_left_arm.setChannelMode
+                        ( DcMotorController.RunMode.RUN_WITHOUT_ENCODERS
+                        );
+            }
+        }
+    }
+
+    public void run_using_left_arm_encoder ()
+
+    {
+        if (my_v_motor_left_arm != null)
+        {
+            my_v_motor_left_arm.setChannelMode
+                    ( DcMotorController.RunMode.RUN_USING_ENCODERS
+                    );
+        }
+
+    } // run_using_right_drive_encoder
+
+    public void run_without_right_arm_encoder() {
+        if (v_motor_right_arm != null)
+        {
+            if (v_motor_right_arm.getChannelMode () ==
+                    DcMotorController.RunMode.RESET_ENCODERS)
+            {
+                v_motor_right_arm.setChannelMode
+                        ( DcMotorController.RunMode.RUN_WITHOUT_ENCODERS
+                        );
+            }
+        }
+    }
 } // PushBotManual 1
