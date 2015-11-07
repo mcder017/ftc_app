@@ -28,6 +28,14 @@ public class PushBotManual1 extends PushBotTelemetry
     private DcMotor v_motor_right_arm;
     private DcMotor my_v_motor_left_arm;
 
+    final int LEFT_ARM_BEGINNING = 10000;
+    private int left_arm_encoder_old=LEFT_ARM_BEGINNING;
+    final double HOLD_UP_ARM = 0.08;
+    final double HOLD_HOLD_ARM = 0.03;
+    final int HOLD_RANGE_ARM = -10;
+    final double STICK_DEAD = 0.1;
+
+
     //--------------------------------------------------------------------------
     //
     // PushBotManual1
@@ -147,12 +155,36 @@ public class PushBotManual1 extends PushBotTelemetry
         run_using_left_arm_encoder();
         run_without_right_arm_encoder();
 
-        float l_left_arm_power
-                = Range.clip(
-                (float) scale_motor_power(gamepad2.left_stick_y),
-                -ARM_MOVE_SPEED,
-                ARM_MOVE_SPEED);
-        m_left_arm_power(l_left_arm_power);
+        if (left_arm_encoder_old == LEFT_ARM_BEGINNING) {
+            left_arm_encoder_old = my_a_left_arm_encoder_count();
+        }
+        final boolean deadstick = Math.abs(gamepad2.left_stick_y) <= STICK_DEAD;
+        if (!deadstick) {
+            left_arm_encoder_old = my_a_left_arm_encoder_count();
+
+            float l_left_arm_power
+                    = Range.clip(
+                    (float) scale_motor_power(gamepad2.left_stick_y),
+                    -ARM_MOVE_SPEED,
+                    ARM_MOVE_SPEED);
+            m_left_arm_power(l_left_arm_power);
+
+        }
+        else {
+            final int currentposition = my_a_left_arm_encoder_count();
+            int arm_change = currentposition - left_arm_encoder_old;
+            if (arm_change <= HOLD_RANGE_ARM) {
+                m_left_arm_power(HOLD_UP_ARM);
+            }
+            else if (arm_change >= 0) {
+                m_left_arm_power(0.0);
+            }
+            else {
+                m_left_arm_power (HOLD_HOLD_ARM);
+            }
+        }
+
+
 
 
 
@@ -201,8 +233,8 @@ public class PushBotManual1 extends PushBotTelemetry
 
 
             //
-            // Send telemetry data to the driver station.
-            //
+        // Send telemetry data to the driver station.
+        //
             update_telemetry(); // Update common telemetry
             update_gamepad_telemetry();
         telemetry.addData
@@ -210,7 +242,6 @@ public class PushBotManual1 extends PushBotTelemetry
                         , "Left Arm encoder: " + (my_has_left_arm_encoder_reset() ? "R" : "") + my_a_left_arm_encoder_count()
                 );
         telemetry.addData("16", "Right Arm Power" + l_right_arm_power );
-
 
 
     }  //loop
