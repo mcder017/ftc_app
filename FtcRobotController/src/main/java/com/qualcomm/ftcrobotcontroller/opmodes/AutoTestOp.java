@@ -12,8 +12,15 @@ public class AutoTestOp extends PushBotTelemetry {
     private int v_state = 0;
     private Servo v_servo_left_hand;
     private Servo v_servo_right_hand;
+    public double turnPower1 = 1;
+    public double turnPower2 = -1;
     double firstDistance = 4.0;
-    final double DRIVE_DISTANCE_6_INCHES = 2880;
+    final double DRIVE_DISTANCE_6_INCHES = 2600;
+    double ninety_degree_turn = 4800;
+    double arm_up = 500;
+    double arm_down = 1000;
+    double Arm_to_bar_time = .3;
+    double Pull_up_time = 2.0;
     private DcMotor v_motor_right_arm;
     //--------------------------------------------------------------------------
     //
@@ -138,7 +145,7 @@ super.init();
 
             case 3:
                 //Turn towards climber\\
-                if (drive_using_encoders(-1.0, 1.0,5000,5000)) {
+                if (drive_using_encoders(turnPower2,turnPower1,ninety_degree_turn,ninety_degree_turn)) {
                     v_state++;
                 }
                 break;
@@ -150,7 +157,7 @@ super.init();
                 break;
             case 5:
                 //lower arm
-                if (arm_using_encoders( -.25, 800 )) {
+                if (arm_using_encoders( -.25, arm_down )) {
                     run_without_left_arm_encoder();
                     m_left_arm_power(0.1);
                     v_state++;
@@ -165,13 +172,13 @@ super.init();
                 break;
             case 7:
                 //Driving to hit climber
-                if (drive_using_encoders(1.0, 1.0, DRIVE_DISTANCE_6_INCHES*5, DRIVE_DISTANCE_6_INCHES*5)) {
+                if (drive_using_encoders(1.0, 1.0, DRIVE_DISTANCE_6_INCHES*6.6, DRIVE_DISTANCE_6_INCHES*6.6)) {
                     v_state++;
                 }
 
             case 8:
                 //Lift arm
-                if(arm_using_encoders(.25f,500)) {
+                if(arm_using_encoders(.25f,arm_up)) {
                  v_state++;
                 }
 
@@ -186,7 +193,7 @@ super.init();
 
             case 10:
                 //Backing up from climber
-                if (drive_using_encoders(-1.0, -1.0, DRIVE_DISTANCE_6_INCHES*5, DRIVE_DISTANCE_6_INCHES*5)) {
+                if (drive_using_encoders(-1.0, -1.0, DRIVE_DISTANCE_6_INCHES*1, DRIVE_DISTANCE_6_INCHES*1)) {
                     v_state++;
                 }
               break;
@@ -209,12 +216,12 @@ super.init();
                  break;
             case 15:
                 // Reverse turn back towards mountain
-                if (drive_using_encoders(1.0, -1.0, 5000,5000)) {
+                if (drive_using_encoders(turnPower1, turnPower2, ninety_degree_turn,ninety_degree_turn)) {
                     v_state++;
                 }break;
             case 16:
                 //back up to be parallel with mountain
-                if (drive_using_encoders(-1.0, -1.0, DRIVE_DISTANCE_6_INCHES*3, DRIVE_DISTANCE_6_INCHES*3)) {
+                if (drive_using_encoders(-1.0, -1.0, DRIVE_DISTANCE_6_INCHES*2, DRIVE_DISTANCE_6_INCHES*2)) {
                     v_state++;
                 }
                break;
@@ -225,7 +232,7 @@ super.init();
                 break;
             case 18:
                 // Turn to face mountain
-                if (drive_using_encoders(-1.0, 1.0,5000,5000)) {
+                if (drive_using_encoders(turnPower2, turnPower1,ninety_degree_turn,ninety_degree_turn)) {
                     v_state++;
                 }
                 break;
@@ -236,7 +243,7 @@ super.init();
                 }
             case 20 :
                 //Drive up mountain
-                if (drive_using_encoders(1.0, 1.0,DRIVE_DISTANCE_6_INCHES*8,DRIVE_DISTANCE_6_INCHES*8)) {
+                if (drive_using_encoders(1.0, 1.0,DRIVE_DISTANCE_6_INCHES*5,DRIVE_DISTANCE_6_INCHES*5)) {
                     v_state++;
                 }
 
@@ -253,7 +260,7 @@ super.init();
                 break;
             case 22:
                 //stop arm after short time and begin pulling and driving
-                if(currentTime >=.3) {
+                if(currentTime >=Arm_to_bar_time) {
                     m_left_arm_power(0.0);
                     run_without_drive_encoders();
                     m_right_arm_power(1.0);
@@ -265,7 +272,7 @@ super.init();
                 break;
             case 23:
                 //Stop everything
-                if(currentTime >=2.0) {
+                if(currentTime >=Pull_up_time) {
                     m_right_arm_power(0.0);
                     set_drive_power(0.0,0.0);
                     v_state++;

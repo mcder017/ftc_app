@@ -5,6 +5,10 @@ package com.qualcomm.ftcrobotcontroller.opmodes;
  */
 public class AutoTestOpRed1 extends AutoTestOp {
     public AutoTestOpRed1() {
+          turnPower1 = -1;
+          turnPower2 = 1;
+
 
     }
+
 }
