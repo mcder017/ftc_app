@@ -17,7 +17,7 @@ public class AutoTestOp extends PushBotTelemetry {
     public double turnPower2 = -1;
     double firstDistance = 4.0;
     final double DRIVE_DISTANCE_6_INCHES = 2600;
-    double ninety_degree_turn = 4750;
+    double ninety_degree_turn = 4710;
     double arm_up = 500;
     double arm_down = 1000;
     double Arm_to_bar_time = .3;
