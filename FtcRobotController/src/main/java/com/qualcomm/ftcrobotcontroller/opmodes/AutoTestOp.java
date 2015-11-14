@@ -4,6 +4,7 @@ import com.qualcomm.ftccommon.DbgLog;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorController;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.Range;
 
 /**
  * Created by a on 10/14/2015.
@@ -16,12 +17,22 @@ public class AutoTestOp extends PushBotTelemetry {
     public double turnPower2 = -1;
     double firstDistance = 4.0;
     final double DRIVE_DISTANCE_6_INCHES = 2600;
-    double ninety_degree_turn = 4700;
+    double ninety_degree_turn = 4750;
     double arm_up = 500;
     double arm_down = 1000;
     double Arm_to_bar_time = .3;
     double Pull_up_time = 1.0;
     private DcMotor v_motor_right_arm;
+    boolean left_arm_movement = false;
+
+    //holding arm in place
+    final int LEFT_ARM_BEGINNING = 10000;
+    private int left_arm_encoder_old=LEFT_ARM_BEGINNING;
+    final double HOLD_UP_ARM = 0.08;
+    final double HOLD_HOLD_ARM = 0.03;
+    final int HOLD_RANGE_ARM = -10;
+    final float ARM_MOVE_SPEED = 0.175f;
+
     //--------------------------------------------------------------------------
     //
     // v_motor_left_arm
@@ -107,6 +118,8 @@ super.init();
     public void start() {
         super.start();
         m_myhand_position(0.76, 1.0 - 0.76);
+        reset_drive_encoders();
+        reset_left_arm_encoder();
 
     }
 
@@ -120,11 +133,9 @@ super.init();
             case 0:
 
                 if(have_drive_encoders_reset()){
-
-
-
-
-              v_state++;
+                    if (my_has_left_arm_encoder_reset()) {
+                        v_state++;
+                    }
                 }
                 break;
             case 1:
@@ -157,13 +168,13 @@ super.init();
                 break;
             case 5:
                 //lower arm
-                if (arm_using_encoders( -.25, arm_down )) {
-                    run_without_left_arm_encoder();
-                    m_left_arm_power(0.1);
+                left_arm_movement = true;
+                //if (arm_using_encoders( -.25f, arm_down )) {
                     v_state++;
-                }
+                //}
                 break;
             case 6:
+                left_arm_movement = false;
                 if (have_drive_encoders_reset()) {
                     v_state++;
                 }
@@ -172,7 +183,7 @@ super.init();
                 break;
             case 7:
                 //Driving to hit climber
-                if (drive_using_encoders(1.0, 1.0, DRIVE_DISTANCE_6_INCHES*1.5, DRIVE_DISTANCE_6_INCHES*1.5)) {
+                if (drive_using_encoders(1.0, 1.0, DRIVE_DISTANCE_6_INCHES*1.75, DRIVE_DISTANCE_6_INCHES*1.75)) {
                     v_state++;
                 }
                 break;
@@ -184,21 +195,23 @@ super.init();
 
             case 9:
                 //Lift arm
-                if(arm_using_encoders(.25f,arm_up)) {
+                left_arm_movement = true;
+               // if(arm_using_encoders(.25f,arm_up)) {
                  v_state++;
-                }
+                //}
 
                 break;
             case 10:
-                if(has_left_arm_encoder_reset()) {
+                //if(my_has_left_arm_encoder_reset()) {
                     v_state++;
-                }
+                //}
 
                 break;
 
 
             case 11:
                 //Backing up from climber
+                left_arm_movement = false;
                 if (drive_using_encoders(-1.0, -1.0, DRIVE_DISTANCE_6_INCHES*1, DRIVE_DISTANCE_6_INCHES*1)) {
                     v_state++;
                 }
@@ -261,9 +274,10 @@ super.init();
                 break;
             case 22:
                 //lower arm towards bar
+                left_arm_movement = true;
                 resetStartTime();
                 run_without_left_arm_encoder();
-                m_left_arm_power(-1);
+                //m_left_arm_power(-1);
 
                 v_state++;
                 break;
@@ -300,6 +314,37 @@ super.init();
                break;
         }
 
+        run_using_left_arm_encoder();
+
+
+        if (left_arm_encoder_old == LEFT_ARM_BEGINNING) {
+            left_arm_encoder_old = a_left_arm_encoder_count();
+        }
+        if (left_arm_movement) {
+            left_arm_encoder_old = a_left_arm_encoder_count();
+
+             l_left_arm_power
+                     = Range.clip(
+                     (float) scale_motor_power(gamepad2.left_stick_y),
+                     -ARM_MOVE_SPEED,
+                     ARM_MOVE_SPEED);
+            m_left_arm_power(l_left_arm_power);
+
+        }
+        else {
+            final int currentposition = a_left_arm_encoder_count();
+            int arm_change = currentposition - left_arm_encoder_old;
+            if (arm_change <= HOLD_RANGE_ARM) {
+                m_left_arm_power(HOLD_UP_ARM);
+            }
+            else if (arm_change >= 0) {
+                m_left_arm_power(0.0);
+            }
+            else {
+                m_left_arm_power (HOLD_HOLD_ARM);
+            }
+        }
+
         //
         // Send telemetry data to the driver station.
         //
@@ -308,9 +353,39 @@ super.init();
                 ("14"
                         , "State: " + v_state + " Time " + currentTime
                 );
+        telemetry.addData
+                ("12"
+                        , "Left Arm encoder: " + a_left_arm_encoder_count()
+                );
         telemetry.addData("15", "Distance L "+a_left_encoder_count()+" R "+ a_right_encoder_count() );
         telemetry.addData("16", "Right Arm Power" + a_right_arm_power() );
     }
+
+    boolean my_has_left_arm_encoder_reset()
+    {
+        //
+        // Assume failure.
+        //
+        boolean l_return = false;
+
+        //
+        // Has the left encoder reached zero?
+        //
+        if (a_left_arm_encoder_count() == 0)
+        {
+            //
+            // Set the status to a positive indication.
+            //
+            l_return = true;
+        }
+
+        //
+        // Return the status.
+        //
+        return l_return;
+
+    } // has_left_drive_encoder_reset
+
     //--------------------------------------------------------------------------
     //
     // a_left_encoder_count
