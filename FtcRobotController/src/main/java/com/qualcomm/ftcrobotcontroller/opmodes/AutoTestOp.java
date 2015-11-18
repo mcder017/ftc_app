@@ -107,7 +107,7 @@ super.init();
 
             v_servo_right_hand = null;
         }
-        m_myhand_position(0.0,0.54);
+        m_myhand_position(0.0, 0.54);
 
         //state is v_state
         v_state = 0;
@@ -169,9 +169,9 @@ super.init();
             case 5:
                 //lower arm
                 left_arm_movement = true;
-                //if (arm_using_encoders( -.25f, arm_down )) {
+                if (arm_using_encoders( -.25f, arm_down )) {
                     v_state++;
-                //}
+                }
                 break;
             case 6:
                 left_arm_movement = false;
@@ -196,15 +196,15 @@ super.init();
             case 9:
                 //Lift arm
                 left_arm_movement = true;
-               // if(arm_using_encoders(.25f,arm_up)) {
+                if(arm_using_encoders(.25f,arm_up)) {
                  v_state++;
-                //}
+                }
 
                 break;
             case 10:
-                //if(my_has_left_arm_encoder_reset()) {
-                    v_state++;
-                //}
+               if(my_has_left_arm_encoder_reset()) {
+                   v_state++;
+               }
 
                 break;
 
@@ -277,7 +277,7 @@ super.init();
                 left_arm_movement = true;
                 resetStartTime();
                 run_without_left_arm_encoder();
-                //m_left_arm_power(-1);
+                m_left_arm_power(-1);
 
                 v_state++;
                 break;
