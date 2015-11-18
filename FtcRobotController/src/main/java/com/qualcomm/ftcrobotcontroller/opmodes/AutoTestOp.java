@@ -6,6 +6,8 @@ import com.qualcomm.robotcore.hardware.DcMotorController;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
+import java.util.Map;
+
 /**
  * Created by a on 10/14/2015.
  */
@@ -17,9 +19,9 @@ public class AutoTestOp extends PushBotTelemetry {
     public double turnPower2 = -1;
     double firstDistance = 4.0;
     final double DRIVE_DISTANCE_6_INCHES = 2600;
-    double ninety_degree_turn = 4710;
+    double ninety_degree_turn = 4450;
     double arm_up = 500;
-    double arm_down = 1000;
+    double arm_down = 900;
     double Arm_to_bar_time = .3;
     double Pull_up_time = 1.0;
     private DcMotor v_motor_right_arm;
@@ -32,6 +34,13 @@ public class AutoTestOp extends PushBotTelemetry {
     final double HOLD_HOLD_ARM = 0.03;
     final int HOLD_RANGE_ARM = -10;
     final float ARM_MOVE_SPEED = 0.175f;
+
+    //Arm safety plan
+    double save_leftarm_encoder=0;
+    double save_armtime=0;
+    final double WAIT_TIME_ARM=0.5;
+    final double LEFT_ARM_THRESHHOLD=400;
+
 
     //--------------------------------------------------------------------------
     //
@@ -55,8 +64,6 @@ void m_myhand_position(double lefthand, double righthand){
 
     public void init() {
 super.init();
-        reset_drive_encoders();
-        reset_left_arm_encoder();
         // Connect the arm motor.
         //
         try
@@ -108,6 +115,8 @@ super.init();
             v_servo_right_hand = null;
         }
         m_myhand_position(0.0, 0.54);
+        reset_drive_encoders();
+        reset_left_arm_encoder();
 
         //state is v_state
         v_state = 0;
@@ -164,6 +173,8 @@ super.init();
             case 4:
                 if (have_drive_encoders_reset()) {
                     v_state++;
+                    save_leftarm_encoder=a_left_arm_encoder_count();
+                    save_armtime=currentTime;
                 }
                 break;
             case 5:
@@ -171,6 +182,18 @@ super.init();
                 left_arm_movement = true;
                 if (arm_using_encoders( -.25f, arm_down )) {
                     v_state++;
+                }
+                //check for stall
+                if (currentTime >=save_armtime+WAIT_TIME_ARM ){
+                    if (Math.abs(a_left_arm_encoder_count()-save_leftarm_encoder)<LEFT_ARM_THRESHHOLD){
+                        m_left_arm_power(0.0);
+                        reset_left_arm_encoder();
+                        v_state++;
+                    }
+                    else {
+                        save_leftarm_encoder=a_left_arm_encoder_count();
+                        save_armtime=currentTime;
+                    }
                 }
                 break;
             case 6:
@@ -183,13 +206,15 @@ super.init();
                 break;
             case 7:
                 //Driving to hit climber
-                if (drive_using_encoders(1.0, 1.0, DRIVE_DISTANCE_6_INCHES*1.75, DRIVE_DISTANCE_6_INCHES*1.75)) {
+                if (drive_using_encoders(1.0, 1.0, DRIVE_DISTANCE_6_INCHES*1.25, DRIVE_DISTANCE_6_INCHES*1.25)) {
                     v_state++;
                 }
                 break;
             case 8:
             if (have_drive_encoders_reset()) {
                 v_state++;
+                save_leftarm_encoder=a_left_arm_encoder_count();
+                save_armtime=currentTime;
             }
                 break;
 
@@ -198,8 +223,20 @@ super.init();
                 left_arm_movement = true;
                 if(arm_using_encoders(.25f,arm_up)) {
                  v_state++;
-                }
 
+                }
+                //check for stall
+                if (currentTime >=save_armtime+WAIT_TIME_ARM ){
+                    if (Math.abs(a_left_arm_encoder_count()-save_leftarm_encoder)<LEFT_ARM_THRESHHOLD){
+                        m_left_arm_power(0.0);
+                        reset_left_arm_encoder();
+                        v_state++;
+                    }
+                    else {
+                        save_leftarm_encoder=a_left_arm_encoder_count();
+                        save_armtime=currentTime;
+                    }
+                }
                 break;
             case 10:
                if(my_has_left_arm_encoder_reset()) {
@@ -280,6 +317,8 @@ super.init();
                 m_left_arm_power(-1);
 
                 v_state++;
+                save_leftarm_encoder=a_left_arm_encoder_count();
+                save_armtime=currentTime;
                 break;
             case 23:
                 //stop arm after short time and begin pulling and driving
@@ -314,7 +353,7 @@ super.init();
                break;
         }
 
-        run_using_left_arm_encoder();
+
 
 
         if (left_arm_encoder_old == LEFT_ARM_BEGINNING) {
@@ -323,12 +362,7 @@ super.init();
         if (left_arm_movement) {
             left_arm_encoder_old = a_left_arm_encoder_count();
 
-             l_left_arm_power
-                     = Range.clip(
-                     (float) scale_motor_power(gamepad2.left_stick_y),
-                     -ARM_MOVE_SPEED,
-                     ARM_MOVE_SPEED);
-            m_left_arm_power(l_left_arm_power);
+
 
         }
         else {
