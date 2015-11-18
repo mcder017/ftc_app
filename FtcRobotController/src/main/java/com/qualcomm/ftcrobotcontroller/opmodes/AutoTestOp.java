@@ -19,7 +19,7 @@ public class AutoTestOp extends PushBotTelemetry {
     public double turnPower2 = -1;
     double firstDistance = 4.0;
     final double DRIVE_DISTANCE_6_INCHES = 2600;
-    double ninety_degree_turn = 4450;
+    double ninety_degree_turn = 4250;
     double arm_up = 500;
     double arm_down = 900;
     double Arm_to_bar_time = .3;
@@ -180,9 +180,9 @@ super.init();
             case 5:
                 //lower arm
                 left_arm_movement = true;
-                if (arm_using_encoders( -.25f, arm_down )) {
+               // if (arm_using_encoders( -.25f, arm_down )) {
                     v_state++;
-                }
+                //}
                 //check for stall
                 if (currentTime >=save_armtime+WAIT_TIME_ARM ){
                     if (Math.abs(a_left_arm_encoder_count()-save_leftarm_encoder)<LEFT_ARM_THRESHHOLD){
@@ -221,10 +221,10 @@ super.init();
             case 9:
                 //Lift arm
                 left_arm_movement = true;
-                if(arm_using_encoders(.25f,arm_up)) {
+                //if(arm_using_encoders(.25f,arm_up)) {
                  v_state++;
 
-                }
+                //}
                 //check for stall
                 if (currentTime >=save_armtime+WAIT_TIME_ARM ){
                     if (Math.abs(a_left_arm_encoder_count()-save_leftarm_encoder)<LEFT_ARM_THRESHHOLD){
