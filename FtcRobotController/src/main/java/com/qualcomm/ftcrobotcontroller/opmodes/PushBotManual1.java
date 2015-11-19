@@ -276,7 +276,7 @@ public class PushBotManual1 extends PushBotTelemetry
             }
         }
         telemetry.addData("19", "Left arm stall up " + arm_stalled_up + " / down " + arm_stalled_down
-            );
+        );
 
 
 
@@ -285,7 +285,19 @@ public class PushBotManual1 extends PushBotTelemetry
                 (float) scale_motor_power(gamepad2.right_stick_y),
                 -ARM_MOVE_SPEED,
                 ARM_MOVE_SPEED);
-        m_right_arm_power(l_right_arm_power);
+
+        // if the right arm is touching the top then stop the motor
+        if(v_sensor_touch.isPressed() ) {
+            if (l_right_arm_power < 0) {
+
+
+                m_right_arm_power(0.0);
+            }else{
+                m_right_arm_power(l_right_arm_power);
+            }
+        }else{
+            m_right_arm_power(l_right_arm_power);
+        }
 
         //----------------------------------------------------------------------
         //
@@ -321,14 +333,7 @@ public class PushBotManual1 extends PushBotTelemetry
                             , Servo.MAX_POSITION);
             m_hand_position(l_position);
         }
-        // if the right arm is touching the top then stop the motor
-        if(v_sensor_touch.isPressed() ) {
-            if (a_right_arm_power() > 0) {
 
-
-                m_right_arm_power(0.0);
-            }
-        }
 
         // check gyro
         if (start_heading > 360 && a_gyro_ready()) {

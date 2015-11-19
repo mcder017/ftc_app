@@ -373,7 +373,7 @@ super.init();
         // if right arm is not being used move right arm to top
         if(v_state < 23) {
             if(!v_sensor_touch.isPressed() ){
-                m_right_arm_power(1.0);
+                m_right_arm_power(-1.0);
             }else {
                 m_right_arm_power(0.0);
             }
