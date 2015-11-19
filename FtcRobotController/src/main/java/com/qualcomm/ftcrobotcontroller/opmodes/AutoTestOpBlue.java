@@ -7,8 +7,8 @@ public class AutoTestOpBlue extends AutoTestOp {
     @Override
     public void init() {
         super.init();
-        turnPower1 = -1;
-        turnPower2 = 1;
+        turnPower1 = 1;
+        turnPower2 = -1;
     }
 
     public void loop () {
