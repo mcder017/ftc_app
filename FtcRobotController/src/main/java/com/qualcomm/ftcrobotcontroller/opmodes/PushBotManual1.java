@@ -81,7 +81,19 @@ public class PushBotManual1 extends PushBotTelemetry
             v_motor_right_arm.setPower (p_level);
         }
 
-    } // m_left_arm_power
+    } // m_right_arm_power
+    double a_right_arm_power ()
+    {
+        double l_return = 0.0;
+
+        if (v_motor_right_arm != null)
+        {
+            l_return = v_motor_right_arm.getPower ();
+        }
+
+        return l_return;
+
+    } // a_right_arm_power
     @Override
     public void init() {
         super.init();
@@ -309,6 +321,14 @@ public class PushBotManual1 extends PushBotTelemetry
                             , Servo.MAX_POSITION);
             m_hand_position(l_position);
         }
+        // if the right arm is touching the top then stop the motor
+        if(v_sensor_touch.isPressed() ) {
+            if (a_right_arm_power() > 0) {
+
+
+                m_right_arm_power(0.0);
+            }
+        }
 
         // check gyro
         if (start_heading > 360 && a_gyro_ready()) {
@@ -372,6 +392,7 @@ public class PushBotManual1 extends PushBotTelemetry
         telemetry.addData("16", "Right Arm Power" + l_right_arm_power );
         telemetry.addData("25", "Time " + currentTime
         );
+
 
     }  //loop
     int my_a_left_arm_encoder_count()
