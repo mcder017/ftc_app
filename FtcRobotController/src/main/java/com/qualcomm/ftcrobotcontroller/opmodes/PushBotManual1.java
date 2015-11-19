@@ -339,11 +339,6 @@ public class PushBotManual1 extends PushBotTelemetry
         if (start_heading > 360 && a_gyro_ready()) {
             start_heading = a_current_heading();
         }
-        // if the A and B buttons are pressed, reset Z heading.
-        if(gamepad1.a && gamepad1.b)  {
-            // reset heading.
-            sensorGyro.resetZAxisIntegrator();
-        }
         if (sensorGyro == null) {
             telemetry.addData
                     ("20", "Gyro not found"
@@ -356,6 +351,11 @@ public class PushBotManual1 extends PushBotTelemetry
 
         }
         else {
+            // if the A and B buttons are pressed, reset Z heading.
+            if(gamepad1.a && gamepad1.b)  {
+                // reset heading.
+                sensorGyro.resetZAxisIntegrator();
+            }
             // get the heading info.
             // the Modern Robotics' gyro sensor keeps
             // track of the current heading for the Z axis only.
