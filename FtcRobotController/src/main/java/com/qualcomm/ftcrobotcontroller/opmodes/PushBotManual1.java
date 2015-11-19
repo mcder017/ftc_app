@@ -8,6 +8,7 @@ package com.qualcomm.ftcrobotcontroller.opmodes;
 import com.qualcomm.ftccommon.DbgLog;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorController;
+import com.qualcomm.robotcore.hardware.GyroSensor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
@@ -35,6 +36,7 @@ public class PushBotManual1 extends PushBotTelemetry
     final int HOLD_RANGE_ARM = -10;
     final double STICK_DEAD = 0.1;
 
+    GyroSensor sensorGyro = null;
 
     //--------------------------------------------------------------------------
     //
@@ -93,8 +95,21 @@ public class PushBotManual1 extends PushBotTelemetry
             my_v_motor_left_arm = null;
         }
 
+        try {
+            // get a reference to our GyroSensor object.
+            sensorGyro = hardwareMap.gyroSensor.get("gyro");
 
+            // calibrate the gyro.
+            sensorGyro.calibrate();
 
+        }
+        catch (Exception p_exception) {
+            m_warning_message ("gyro");
+            DbgLog.msg(p_exception.getLocalizedMessage());
+
+            sensorGyro = null;
+
+        }
 
     }
 
@@ -230,7 +245,43 @@ public class PushBotManual1 extends PushBotTelemetry
             m_hand_position(l_position);
         }
 
+        // check gyro
+        // if the A and B buttons are pressed, reset Z heading.
+        if(gamepad1.a && gamepad1.b)  {
+            // reset heading.
+            sensorGyro.resetZAxisIntegrator();
+        }
+        if (sensorGyro == null) {
+            telemetry.addData
+                    ("20", "Gyro not found"
+                    );
+        }
+        else if (sensorGyro.isCalibrating()) {
+            telemetry.addData
+                    ("20", "Gyro calibrating"
+                    );
 
+        }
+        else {
+            // get the x, y, and z values (rate of change of angle).
+            int xVal = sensorGyro.rawX();
+            int yVal = sensorGyro.rawY();
+            int zVal = sensorGyro.rawZ();
+
+            // get the heading info.
+            // the Modern Robotics' gyro sensor keeps
+            // track of the current heading for the Z axis only.
+            int heading = sensorGyro.getHeading();
+
+            double rotation = sensorGyro.getRotation();
+
+            telemetry.addData("20", String.format("%03d", heading));
+            telemetry.addData("21", String.format("%5.3f", rotation));
+            telemetry.addData("22", String.format("%03d", xVal));
+            telemetry.addData("23", String.format("%03d", yVal));
+            telemetry.addData("24", String.format("%03d", zVal));
+
+        }
 
             //
         // Send telemetry data to the driver station.
