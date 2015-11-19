@@ -288,7 +288,7 @@ public class PushBotManual1 extends PushBotTelemetry
 
         // if the right arm is touching the top then stop the motor
         if(v_sensor_touch.isPressed() ) {
-            if (l_right_arm_power < 0) {
+            if (l_right_arm_power <  0) {
 
 
                 m_right_arm_power(0.0);
@@ -367,7 +367,9 @@ public class PushBotManual1 extends PushBotTelemetry
         telemetry.addData("22", "Gyro turn amount: " + magnitude_turned_degrees(start_heading) );
 
         telemetry.addData("27", "Touch sensor " + (v_sensor_touch.isPressed() ? "pressed" : "not pressed") );
+
         // read color sensor
+        if (sensorRGB != null) {
         final int clear = sensorRGB.alpha();
         final int red = sensorRGB.red();
         final int green = sensorRGB.green();
@@ -384,6 +386,7 @@ public class PushBotManual1 extends PushBotTelemetry
         );
         telemetry.addData("29", "Color " + (mostly_red ? "red" : (mostly_green ? "green" : (mostly_blue ? "blue" : "??")))
             );
+        }
 
             //
         // Send telemetry data to the driver station.

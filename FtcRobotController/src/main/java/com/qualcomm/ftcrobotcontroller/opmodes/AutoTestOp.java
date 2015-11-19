@@ -18,7 +18,6 @@ public class AutoTestOp extends PushBotTelemetry {
     private Servo v_servo_right_hand;
     public double turnPower1 = 1;
     public double turnPower2 = -1;
-    double firstDistance = 4.0;
     final double DRIVE_DISTANCE_6_INCHES = 2600;
     final double ninety_degree_turn = 4250;
     double short_last_turn = 4000;
@@ -28,6 +27,8 @@ public class AutoTestOp extends PushBotTelemetry {
     double Pull_up_time = 1.0;
     private DcMotor v_motor_right_arm;
     boolean left_arm_movement = false;
+    double firstDistance =DRIVE_DISTANCE_6_INCHES*9;
+    double secondDistance = DRIVE_DISTANCE_6_INCHES*1.25;
 
     //holding arm in place
     final int LEFT_ARM_BEGINNING = 10000;
@@ -165,7 +166,7 @@ super.init();
                 break;
             case 1:
                 //Drive from wall towards climber
-                if (drive_using_encoders(1.0, 1.0, DRIVE_DISTANCE_6_INCHES*9, DRIVE_DISTANCE_6_INCHES*9)) {
+                if (drive_using_encoders(1.0, 1.0, firstDistance, firstDistance)) {
                     v_state++;
                 }
 
@@ -223,7 +224,7 @@ super.init();
                 break;
             case 7:
                 //Driving to hit climber
-                if (drive_using_encoders(1.0, 1.0, DRIVE_DISTANCE_6_INCHES*1.25, DRIVE_DISTANCE_6_INCHES*1.25)) {
+                if (drive_using_encoders(1.0, 1.0, secondDistance, secondDistance)) {
                     v_state++;
                 }
                 break;
@@ -298,7 +299,7 @@ super.init();
 
             case 17:
                 //back up to be parallel with mountain
-                if (drive_using_encoders(-1.0, -1.0, DRIVE_DISTANCE_6_INCHES*1, DRIVE_DISTANCE_6_INCHES*1)) {
+                if (drive_using_encoders(-1.0, -1.0, DRIVE_DISTANCE_6_INCHES*.8, DRIVE_DISTANCE_6_INCHES*.8)) {
                     v_state++;
                 }
                break;
