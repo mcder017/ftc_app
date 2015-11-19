@@ -19,9 +19,10 @@ public class AutoTestOp extends PushBotTelemetry {
     public double turnPower2 = -1;
     double firstDistance = 4.0;
     final double DRIVE_DISTANCE_6_INCHES = 2600;
-    double ninety_degree_turn = 4250;
-    double arm_up = 500;
-    double arm_down = 900;
+    final double ninety_degree_turn = 4250;
+    double short_last_turn = 4000;
+    final double arm_up = 500;
+    final double arm_down = 900;
     double Arm_to_bar_time = .3;
     double Pull_up_time = 1.0;
     private DcMotor v_motor_right_arm;
@@ -180,9 +181,9 @@ super.init();
             case 5:
                 //lower arm
                 left_arm_movement = true;
-               // if (arm_using_encoders( -.25f, arm_down )) {
+                if (arm_using_encoders( -.25f, arm_down )) {
                     v_state++;
-                //}
+                }
                 //check for stall
                 if (currentTime >=save_armtime+WAIT_TIME_ARM ){
                     if (Math.abs(a_left_arm_encoder_count()-save_leftarm_encoder)<LEFT_ARM_THRESHHOLD){
@@ -221,10 +222,10 @@ super.init();
             case 9:
                 //Lift arm
                 left_arm_movement = true;
-                //if(arm_using_encoders(.25f,arm_up)) {
+                if(arm_using_encoders(.25f,arm_up)) {
                  v_state++;
 
-                //}
+                }
                 //check for stall
                 if (currentTime >=save_armtime+WAIT_TIME_ARM ){
                     if (Math.abs(a_left_arm_encoder_count()-save_leftarm_encoder)<LEFT_ARM_THRESHHOLD){
@@ -291,7 +292,7 @@ super.init();
                 break;
             case 19:
                 // Turn to face mountain
-                if (drive_using_encoders(turnPower2, turnPower1,ninety_degree_turn,ninety_degree_turn)) {
+                if (drive_using_encoders(turnPower2, turnPower1,short_last_turn,short_last_turn)) {
                     v_state++;
                 }
                 break;
@@ -375,7 +376,7 @@ super.init();
                 m_left_arm_power(0.0);
             }
             else {
-                m_left_arm_power (HOLD_HOLD_ARM);
+                //m_left_arm_power (HOLD_HOLD_ARM);
             }
         }
 

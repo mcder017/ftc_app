@@ -180,7 +180,7 @@ public class PushBotManual1 extends PushBotTelemetry
                 m_left_arm_power(0.0);
             }
             else {
-                m_left_arm_power (HOLD_HOLD_ARM);
+                //m_left_arm_power (HOLD_HOLD_ARM);
             }
         }
 
