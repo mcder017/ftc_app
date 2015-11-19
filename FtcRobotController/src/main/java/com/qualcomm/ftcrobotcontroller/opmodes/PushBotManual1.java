@@ -6,10 +6,12 @@ package com.qualcomm.ftcrobotcontroller.opmodes;
 //
 
 import com.qualcomm.ftccommon.DbgLog;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorController;
 import com.qualcomm.robotcore.hardware.GyroSensor;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.Range;
 
 /**
@@ -45,6 +47,9 @@ public class PushBotManual1 extends PushBotTelemetry
     final double LEFT_ARM_THRESHHOLD=200;
 
     GyroSensor sensorGyro = null;
+    int start_heading = 10000;
+    TouchSensor v_sensor_touch = null;
+    ColorSensor sensorRGB = null;
 
     //--------------------------------------------------------------------------
     //
@@ -109,7 +114,6 @@ public class PushBotManual1 extends PushBotTelemetry
 
             // calibrate the gyro.
             sensorGyro.calibrate();
-
         }
         catch (Exception p_exception) {
             m_warning_message ("gyro");
@@ -117,6 +121,28 @@ public class PushBotManual1 extends PushBotTelemetry
 
             sensorGyro = null;
 
+        }
+        try
+        {
+            v_sensor_touch = hardwareMap.touchSensor.get ("sensor_touch");
+        }
+        catch (Exception p_exeception)
+        {
+            m_warning_message ("sensor_touch");
+            DbgLog.msg (p_exeception.getLocalizedMessage ());
+
+            v_sensor_touch = null;
+        }
+        try
+        {
+            sensorRGB = hardwareMap.colorSensor.get("mr");
+        }
+        catch (Exception p_exeception)
+        {
+            m_warning_message ("mr (color sensor)");
+            DbgLog.msg (p_exeception.getLocalizedMessage ());
+
+            sensorRGB = null;
         }
 
     }
@@ -195,6 +221,8 @@ public class PushBotManual1 extends PushBotTelemetry
             if ((l_left_arm_power > 0 && !arm_stalled_up) ||
                 (l_left_arm_power < 0.0 && !arm_stalled_down)) {
                 m_left_arm_power(l_left_arm_power);
+                arm_stalled_down = false;
+                arm_stalled_up = false;
             }
         }
         else {
@@ -235,7 +263,7 @@ public class PushBotManual1 extends PushBotTelemetry
                 }
             }
         }
-        telemetry.addData("19", "Left arm up " + arm_stalled_up + " / down " + arm_stalled_down
+        telemetry.addData("19", "Left arm stall up " + arm_stalled_up + " / down " + arm_stalled_down
             );
 
 
@@ -283,6 +311,9 @@ public class PushBotManual1 extends PushBotTelemetry
         }
 
         // check gyro
+        if (start_heading > 360 && a_gyro_ready()) {
+            start_heading = a_current_heading();
+        }
         // if the A and B buttons are pressed, reset Z heading.
         if(gamepad1.a && gamepad1.b)  {
             // reset heading.
@@ -300,25 +331,34 @@ public class PushBotManual1 extends PushBotTelemetry
 
         }
         else {
-            // get the x, y, and z values (rate of change of angle).
-            int xVal = sensorGyro.rawX();
-            int yVal = sensorGyro.rawY();
-            int zVal = sensorGyro.rawZ();
-
             // get the heading info.
             // the Modern Robotics' gyro sensor keeps
             // track of the current heading for the Z axis only.
             int heading = sensorGyro.getHeading();
 
-            double rotation = sensorGyro.getRotation();
-
-            telemetry.addData("20", String.format("%03d", heading));
-            telemetry.addData("21", String.format("%5.3f", rotation));
-            telemetry.addData("22", String.format("%03d", xVal));
-            telemetry.addData("23", String.format("%03d", yVal));
-            telemetry.addData("24", String.format("%03d", zVal));
-
+            telemetry.addData("20", "Gyro head " + String.format("%03d", heading));
         }
+        telemetry.addData("21", "Gyro turn (signed): " + signed_turn_in_degrees(start_heading) );
+        telemetry.addData("22", "Gyro turn amount: " + magnitude_turned_degrees(start_heading) );
+
+        telemetry.addData("27", "Touch sensor " + (v_sensor_touch.isPressed() ? "pressed" : "not pressed") );
+        // read color sensor
+        final int clear = sensorRGB.alpha();
+        final int red = sensorRGB.red();
+        final int green = sensorRGB.green();
+        final int blue = sensorRGB.blue();
+        final int COLOR_SHIFT = 4;
+        final boolean mostly_red = (red > green+COLOR_SHIFT && red > blue+COLOR_SHIFT);
+        final boolean mostly_green = (green > red+COLOR_SHIFT && green > blue+COLOR_SHIFT);
+        final boolean mostly_blue = (blue > red+COLOR_SHIFT && blue > green+COLOR_SHIFT);
+        telemetry.addData("28", "Clear / R / G / B" +
+                        String.format(" %02d", clear) +
+                        String.format(" %02d", red) +
+                        String.format(" %02d", green) +
+                        String.format(" %02d", blue)
+        );
+        telemetry.addData("29", "Color " + (mostly_red ? "red" : (mostly_green ? "green" : (mostly_blue ? "blue" : "??")))
+            );
 
             //
         // Send telemetry data to the driver station.
@@ -330,7 +370,8 @@ public class PushBotManual1 extends PushBotTelemetry
                         , "Left Arm encoder: " + (my_has_left_arm_encoder_reset() ? "R" : "") + my_a_left_arm_encoder_count()
                 );
         telemetry.addData("16", "Right Arm Power" + l_right_arm_power );
-
+        telemetry.addData("25", "Time " + currentTime
+        );
 
     }  //loop
     int my_a_left_arm_encoder_count()
@@ -432,5 +473,142 @@ public class PushBotManual1 extends PushBotTelemetry
                         );
             }
         }
+    }
+
+    /**
+     * You can save the initial heading using start_heading = a_current_heading();
+     *
+     * Use this function if you want to check if you are simply trying to turn a certain angle
+     * and are confident which way you are turning.
+     *
+     * For example: if (magnitude_turned_degrees(start_heading) >= 45) {...}
+     *
+     * If you need to know whether you have turned clockwise or counterclockwise,
+     * use signed_turn_in_degrees which reports positive for clockwise.
+     *
+     * @param start_heading
+     * @return for up to 179 degrees of turn, reports (always positive) magnitude of degrees turned
+     */
+    public int magnitude_turned_degrees(int start_heading) {
+        if (!a_gyro_ready()) {
+            return 0;   // don't know amount turned
+        }
+        final int current_heading = a_current_heading();
+
+        final int result = Math.abs(signed_turn_in_degrees(start_heading));
+        return result;
+    }
+
+    /**
+     * You can save the initial heading using start_heading = a_current_heading();
+     *
+     * Use this function if you want to check if you are turning clockwise or counter-clockwise.
+     * Otherwise, use magnitude_turned_degrees if you are simply trying to turn a certain angle
+     * and are confident which way you are turning.
+     *
+     * @param start_heading
+     * @return for up to 179 degrees of turn, reports positive (clockwise) or negative (counter-clockwise) turn
+     */
+    public int signed_turn_in_degrees(int start_heading) {
+        if (!a_gyro_ready()) {
+            return 0;   // don't know amount turned
+        }
+        final int current_heading = a_current_heading();
+
+        final int clockwise_no_wrap = current_heading - start_heading;
+        if (clockwise_no_wrap >= 0 && clockwise_no_wrap <= 180) {
+            return clockwise_no_wrap;
+        }
+        final int clockwise_with_wrap = (current_heading+360)-start_heading;
+        if (clockwise_with_wrap <= 180) {
+            return clockwise_with_wrap;
+        }
+        final int counterclockwise_no_wrap = current_heading - start_heading;
+        if (counterclockwise_no_wrap <= 0 &&
+                counterclockwise_no_wrap >= -180) {
+            return counterclockwise_no_wrap;
+        }
+        final int counterclockwise_with_wrap = (current_heading-360) - start_heading;
+        return counterclockwise_with_wrap;
+    }
+
+    // returns true if gyro reports a turn AT LEAST AS FAR as end_heading
+    // from start_heading in the given direction
+    public boolean turned_from_to_heading(int start_heading, int end_heading, boolean turning_clockwise) {
+        final int MAX_TURN = 180;
+        final int clip_start_heading = clip_at_360(start_heading);
+        final int clip_end_heading = clip_at_360(end_heading);
+
+        if (!a_gyro_ready()) {
+            return false;   // don't know if reached heading
+        }
+        final int current_heading = a_current_heading();
+
+        if (turning_clockwise) {
+            if (clip_end_heading > clip_start_heading) {
+                return current_heading >= clip_end_heading;
+            }
+            else {
+                // turn must wrap past zero and then reach end_heading (but not continue on to a 360!)
+                return current_heading >= clip_end_heading &&
+                        current_heading <= (clip_start_heading+clip_end_heading)/2;
+            }
+        }
+        else {  // counter-clockwise
+            if (clip_end_heading < clip_start_heading) {
+                return current_heading <= clip_end_heading;
+            }
+            else {
+                // turn must wrap past zero and then reach end_heading (but not continue on to a 360!)
+                return current_heading <= clip_end_heading &&
+                        current_heading >= (clip_start_heading+clip_end_heading)/2;
+            }
+        }
+    }
+
+    /**
+     *
+     * @return true if gyro heading can be read
+     */
+    public boolean a_gyro_ready() {
+        boolean result = false;
+        if (sensorGyro != null && !sensorGyro.isCalibrating()) {
+            result = true;
+        }
+        return result;
+    }
+
+    /**
+     *
+     * @return zero if calibrating or no gyro, else current heading
+     */
+    public int a_current_heading() {
+        int result = 0;
+        if (sensorGyro == null) {
+            // no action
+        }
+        else if (sensorGyro.isCalibrating()) {
+            // no action
+        }
+        else {
+            result = sensorGyro.getHeading();
+        }
+        return result;
+    }
+
+    /**
+     *
+     * @param heading
+     * @return heading circled into [0,359]
+     */
+    public int clip_at_360(int heading) {
+        int result = heading;
+        while (result >= 360) {
+            result -= 360;
+        }
+        while (result <= 0) {
+            result += 360;
+        }
+        return result;
     }
 } // PushBotManual 1
