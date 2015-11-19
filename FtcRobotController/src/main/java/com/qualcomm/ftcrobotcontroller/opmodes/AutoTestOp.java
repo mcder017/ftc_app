@@ -40,8 +40,8 @@ public class AutoTestOp extends PushBotTelemetry {
     double save_leftarm_encoder=0;
     double save_armtime=0;
     boolean arm_stalled=false;
-    final double WAIT_TIME_ARM=0.2;
-    final double LEFT_ARM_THRESHHOLD=200;
+    final double WAIT_TIME_ARM=0.5;
+    final double LEFT_ARM_THRESHHOLD=30;
 
 
     //--------------------------------------------------------------------------
