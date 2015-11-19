@@ -36,6 +36,14 @@ public class PushBotManual1 extends PushBotTelemetry
     final int HOLD_RANGE_ARM = -10;
     final double STICK_DEAD = 0.1;
 
+    //Arm safety plan
+    double save_leftarm_encoder=0;
+    double save_armtime=0;
+    boolean arm_stalled_up = false;
+    boolean arm_stalled_down = false;
+    final double WAIT_TIME_ARM=0.2;
+    final double LEFT_ARM_THRESHHOLD=200;
+
     GyroSensor sensorGyro = null;
 
     //--------------------------------------------------------------------------
@@ -131,6 +139,8 @@ public class PushBotManual1 extends PushBotTelemetry
     @Override public void loop ()
 
     {
+        double currentTime = getRuntime();
+
         //----------------------------------------------------------------------
         //
         // DC Motors
@@ -182,24 +192,51 @@ public class PushBotManual1 extends PushBotTelemetry
                     (float) scale_motor_power(gamepad2.left_stick_y),
                     -ARM_MOVE_SPEED,
                     ARM_MOVE_SPEED);
-            m_left_arm_power(l_left_arm_power);
-
+            if ((l_left_arm_power > 0 && !arm_stalled_up) ||
+                (l_left_arm_power < 0.0 && !arm_stalled_down)) {
+                m_left_arm_power(l_left_arm_power);
+            }
         }
         else {
             final int currentposition = my_a_left_arm_encoder_count();
             int arm_change = currentposition - left_arm_encoder_old;
             if (arm_change <= HOLD_RANGE_ARM) {
-                m_left_arm_power(HOLD_UP_ARM);
+                if (!arm_stalled_up) {
+                    m_left_arm_power(HOLD_UP_ARM);
+                }
             }
             else if (arm_change >= 0) {
                 m_left_arm_power(0.0);
             }
             else {
-                //m_left_arm_power (HOLD_HOLD_ARM);
+                // keeping power on might burn out motor
+                m_left_arm_power(0.0);
             }
         }
 
-
+        if (deadstick || a_left_arm_power() == 0.0) {
+            save_leftarm_encoder = my_a_left_arm_encoder_count();
+            save_armtime = currentTime;
+        }
+        else {
+            if (Math.abs(currentTime-save_armtime) >= WAIT_TIME_ARM) {
+                if (Math.abs(my_a_left_arm_encoder_count()-save_leftarm_encoder)<LEFT_ARM_THRESHHOLD){
+                    if (a_left_arm_power() > 0.0) {
+                        arm_stalled_up = true;      // don't power arm up anymore until stop first
+                    }
+                    else {
+                        arm_stalled_down = true;    // don't power arm down anymore until stop first
+                    }
+                    m_left_arm_power(0.0);
+                }
+                else {
+                    save_leftarm_encoder=my_a_left_arm_encoder_count();
+                    save_armtime=currentTime;
+                }
+            }
+        }
+        telemetry.addData("19", "Left arm up " + arm_stalled_up + " / down " + arm_stalled_down
+            );
 
 
 
@@ -352,8 +389,8 @@ public class PushBotManual1 extends PushBotTelemetry
     {
         if (my_v_motor_left_arm != null)
         {
-            my_v_motor_left_arm.setChannelMode
-                    ( DcMotorController.RunMode.RESET_ENCODERS
+            my_v_motor_left_arm.setMode
+                    (DcMotorController.RunMode.RESET_ENCODERS
                     );
         }
 
@@ -362,11 +399,11 @@ public class PushBotManual1 extends PushBotTelemetry
     public void my_run_without_left_arm_encoder() {
         if (my_v_motor_left_arm != null)
         {
-            if (my_v_motor_left_arm.getChannelMode () ==
+            if (my_v_motor_left_arm.getMode() ==
                     DcMotorController.RunMode.RESET_ENCODERS)
             {
-                my_v_motor_left_arm.setChannelMode
-                        ( DcMotorController.RunMode.RUN_WITHOUT_ENCODERS
+                my_v_motor_left_arm.setMode
+                        (DcMotorController.RunMode.RUN_WITHOUT_ENCODERS
                         );
             }
         }
@@ -377,8 +414,8 @@ public class PushBotManual1 extends PushBotTelemetry
     {
         if (my_v_motor_left_arm != null)
         {
-            my_v_motor_left_arm.setChannelMode
-                    ( DcMotorController.RunMode.RUN_USING_ENCODERS
+            my_v_motor_left_arm.setMode
+                    (DcMotorController.RunMode.RUN_USING_ENCODERS
                     );
         }
 
@@ -387,11 +424,11 @@ public class PushBotManual1 extends PushBotTelemetry
     public void run_without_right_arm_encoder() {
         if (v_motor_right_arm != null)
         {
-            if (v_motor_right_arm.getChannelMode () ==
+            if (v_motor_right_arm.getMode() ==
                     DcMotorController.RunMode.RESET_ENCODERS)
             {
-                v_motor_right_arm.setChannelMode
-                        ( DcMotorController.RunMode.RUN_WITHOUT_ENCODERS
+                v_motor_right_arm.setMode
+                        (DcMotorController.RunMode.RUN_WITHOUT_ENCODERS
                         );
             }
         }

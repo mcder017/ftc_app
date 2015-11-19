@@ -39,8 +39,9 @@ public class AutoTestOp extends PushBotTelemetry {
     //Arm safety plan
     double save_leftarm_encoder=0;
     double save_armtime=0;
-    final double WAIT_TIME_ARM=0.5;
-    final double LEFT_ARM_THRESHHOLD=400;
+    boolean arm_stalled=false;
+    final double WAIT_TIME_ARM=0.2;
+    final double LEFT_ARM_THRESHHOLD=200;
 
 
     //--------------------------------------------------------------------------
@@ -189,6 +190,7 @@ super.init();
                     if (Math.abs(a_left_arm_encoder_count()-save_leftarm_encoder)<LEFT_ARM_THRESHHOLD){
                         m_left_arm_power(0.0);
                         reset_left_arm_encoder();
+                        arm_stalled=true;
                         v_state++;
                     }
                     else {
@@ -231,6 +233,7 @@ super.init();
                     if (Math.abs(a_left_arm_encoder_count()-save_leftarm_encoder)<LEFT_ARM_THRESHHOLD){
                         m_left_arm_power(0.0);
                         reset_left_arm_encoder();
+                        arm_stalled=true;
                         v_state++;
                     }
                     else {
@@ -362,9 +365,6 @@ super.init();
         }
         if (left_arm_movement) {
             left_arm_encoder_old = a_left_arm_encoder_count();
-
-
-
         }
         else {
             final int currentposition = a_left_arm_encoder_count();
@@ -376,7 +376,8 @@ super.init();
                 m_left_arm_power(0.0);
             }
             else {
-                //m_left_arm_power (HOLD_HOLD_ARM);
+                // keeping power on might burn out motor
+                m_left_arm_power (0.0);
             }
         }
 
@@ -393,7 +394,9 @@ super.init();
                         , "Left Arm encoder: " + a_left_arm_encoder_count()
                 );
         telemetry.addData("15", "Distance L "+a_left_encoder_count()+" R "+ a_right_encoder_count() );
-        telemetry.addData("16", "Right Arm Power" + a_right_arm_power() );
+        telemetry.addData("16", "Right Arm Power " + a_right_arm_power() );
+        telemetry.addData("19", (arm_stalled ? "Left arm STALLED" : "Left arm no stall")
+            );
     }
 
     boolean my_has_left_arm_encoder_reset()
@@ -484,7 +487,7 @@ super.init();
     {
         if (v_motor_left_arm != null)
         {
-            v_motor_left_arm.setChannelMode
+            v_motor_left_arm.setMode
                     ( DcMotorController.RunMode.RESET_ENCODERS
                     );
         }
@@ -495,7 +498,7 @@ super.init();
     {
         if (v_motor_left_arm != null)
         {
-            v_motor_left_arm.setChannelMode
+            v_motor_left_arm.setMode
                     ( DcMotorController.RunMode.RUN_USING_ENCODERS
                     );
         }
@@ -506,10 +509,10 @@ super.init();
     {
         if (v_motor_left_arm != null)
         {
-            if (v_motor_left_arm.getChannelMode () ==
+            if (v_motor_left_arm.getMode () ==
                     DcMotorController.RunMode.RESET_ENCODERS)
             {
-                v_motor_left_arm.setChannelMode
+                v_motor_left_arm.setMode
                         ( DcMotorController.RunMode.RUN_WITHOUT_ENCODERS
                         );
             }
