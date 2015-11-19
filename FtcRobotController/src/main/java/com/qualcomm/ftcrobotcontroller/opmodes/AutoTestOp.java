@@ -210,6 +210,7 @@ super.init();
                 if (magnitude_turned_degrees(start_heading) >= 90) {
                     set_drive_power(0.0,0.0);
                     v_state++;
+                    reset_drive_encoders();
                 }
                 break;
 
@@ -322,6 +323,7 @@ super.init();
                 if (magnitude_turned_degrees(start_heading) >= 90) {
                     set_drive_power(0.0,0.0);
                     v_state++;
+                    reset_drive_encoders();
                 }
 
 
@@ -353,6 +355,7 @@ super.init();
                 if (magnitude_turned_degrees(start_heading) >= 90) {
                     set_drive_power(0.0,0.0);
                     v_state++;
+                    reset_drive_encoders();
                 }
 
 
