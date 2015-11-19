@@ -23,7 +23,7 @@ public class AutoTestOp extends PushBotTelemetry {
     final double ninety_degree_turn = 4250;
     double short_last_turn = 4000;
     final double arm_up = 500;
-    final double arm_down = 900;
+    final double arm_down = 875;
     double Arm_to_bar_time = .3;
     double Pull_up_time = 1.0;
     private DcMotor v_motor_right_arm;
@@ -178,7 +178,10 @@ super.init();
 
                 if(have_drive_encoders_reset()){
                     if (my_has_left_arm_encoder_reset()) {
-                        v_state++;
+                        if(a_gyro_ready()) {
+                            v_state++;
+                        }
+
                     }
                 }
                 break;
@@ -202,6 +205,7 @@ super.init();
             case 3:
                 //Turn towards climber\\
                // if (drive_using_encoders(turnPower2,turnPower1,ninety_degree_turn,ninety_degree_turn)) {
+                run_using_encoders();
                 set_drive_power(turnPower2,turnPower1 );
                 if (magnitude_turned_degrees(start_heading) >= 90) {
                     set_drive_power(0.0,0.0);
@@ -313,6 +317,7 @@ super.init();
             case 15:
                 // Reverse turn back towards mountain
                // if (drive_using_encoders(turnPower1, turnPower2, ninety_degree_turn,ninety_degree_turn)) {
+                run_using_encoders();
                 set_drive_power(turnPower1,turnPower2 );
                 if (magnitude_turned_degrees(start_heading) >= 90) {
                     set_drive_power(0.0,0.0);
@@ -340,8 +345,10 @@ super.init();
                 }
                 break;
             case 19:
+
                 // Turn to face mountain
                 //if (drive_using_encoders(turnPower2, turnPower1,short_last_turn,short_last_turn)) {
+                run_using_encoders();
                 set_drive_power(turnPower2,turnPower1 );
                 if (magnitude_turned_degrees(start_heading) >= 90) {
                     set_drive_power(0.0,0.0);
