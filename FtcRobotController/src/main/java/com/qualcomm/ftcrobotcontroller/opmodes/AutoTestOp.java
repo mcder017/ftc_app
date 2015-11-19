@@ -4,6 +4,7 @@ import com.qualcomm.ftccommon.DbgLog;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorController;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.Range;
 
 import java.util.Map;
@@ -42,6 +43,8 @@ public class AutoTestOp extends PushBotTelemetry {
     boolean arm_stalled=false;
     final double WAIT_TIME_ARM=0.5;
     final double LEFT_ARM_THRESHHOLD=30;
+    // touch sensor
+    TouchSensor v_sensor_touch = null;
 
 
     //--------------------------------------------------------------------------
@@ -115,6 +118,17 @@ super.init();
             DbgLog.msg (p_exeception.getLocalizedMessage ());
 
             v_servo_right_hand = null;
+        }
+        try
+        {
+            v_sensor_touch = hardwareMap.touchSensor.get ("sensor_touch");
+        }
+        catch (Exception p_exeception)
+        {
+            m_warning_message ("sensor_touch");
+            DbgLog.msg (p_exeception.getLocalizedMessage ());
+
+            v_sensor_touch = null;
         }
         m_myhand_position(0.0, 0.54);
         reset_drive_encoders();
@@ -355,6 +369,15 @@ super.init();
             default:
                 //Do nothing
                break;
+        }
+        // if right arm is not being used move right arm to top
+        if(v_state < 23) {
+            if(!v_sensor_touch.isPressed() ){
+                m_right_arm_power(1.0);
+            }else {
+                m_right_arm_power(0.0);
+            }
+
         }
 
 

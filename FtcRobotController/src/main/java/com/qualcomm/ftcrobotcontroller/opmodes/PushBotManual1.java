@@ -238,7 +238,7 @@ public class PushBotManual1 extends PushBotTelemetry
             }
             else {
                 // keeping power on might burn out motor
-                m_left_arm_power(0.0);
+                m_left_arm_power(0.0);  // was HOLD_HOLD_ARM
             }
         }
 
