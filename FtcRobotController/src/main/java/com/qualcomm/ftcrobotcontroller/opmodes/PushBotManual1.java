@@ -27,7 +27,7 @@ public class PushBotManual1 extends PushBotTelemetry
 {
     final double HAND_MOVEMENT_SIZE = 0.015;
     final double MY_MIN_HAND_POSITION = 0.23;
-    final float ARM_MOVE_SPEED = 0.5f; // 0.175f;
+    final float ARM_MOVE_SPEED = 0.175f;
     private DcMotor v_motor_right_arm;
     private DcMotor my_v_motor_left_arm;
 
